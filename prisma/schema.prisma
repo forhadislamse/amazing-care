@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
+  email               String         @unique
+  password            String         @default("")
+  username            String         @default("")
+  firtName            String         @default("")
+  lastName            String         @default("")
+  role                UserRole       @default(USER)
+  userStatus          UserStatus     @default(ACTIVE)
+  fcmToken            String?        @default("")
+  dob                 DateTime?
+  profileImage        String         @default("")
+  profileUrl          String?
+  planType            PlanType       @default(BASIC)
+  isSubscribed        Boolean        @default(false)
+  permissionScanCount Int            @default(5)
+  scanCount           Int            @default(0)
+  expirationOtp       DateTime?
+  otp                 Int?
+  isNotification      Boolean        @default(true)
+  status              UserStatus     @default(ACTIVE)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  notifications       Notification[] @relation("UserRelation")
+  Review              Review[]
+  Subscription        Subscription[]
+
+  @@map("users")
+}
+
+model Plan {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  amount    Float
+  type      PlanType         @default(BASIC)
+  time      SubscriptionType @default(MONTHLY)
+  feature   String[]
+  isDeleted Boolean          @default(false)
+  createAt  DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  subscription Subscription[]
+
+  @@map("planes")
+}
+
+model Subscription {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  planId    String    @db.ObjectId
+  plan      Plan      @relation(fields: [planId], references: [id])
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int      @default(0)
+  agentId   String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  // agent Agent @relation("AgentReviews", fields: [agentId], references: [id])
+
+  @@map("reviews")
+}
+
+model PrivacyPolicy {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @default("")
+}
+
+model TermsAndConditions {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @default("")
+}
+
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  title     String
+  body      String
+  data      String?  @default("")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation("UserRelation", fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+enum SubscriptionType {
+  MONTHLY
+  YEARLY
+}
+
+enum PlanType {
+  BASIC
+  PRO
+  PREMIUM
+}
+
+enum UserRole {
+  ADMIN
+  MENTOR
+  SUPER_ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
