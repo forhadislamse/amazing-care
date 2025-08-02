@@ -44,6 +44,8 @@ const createUserIntoDb = async (payload: User) => {
     select: {
       id: true,
       username: true,
+      firstName: true,
+      lastName: true,
       email: true,
       profileImage: true,
       role: true,

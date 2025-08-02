@@ -12,7 +12,7 @@ model User {
   email               String         @unique
   password            String         @default("")
   username            String         @default("")
-  firtName            String         @default("")
+  firstName           String         @default("")
   lastName            String         @default("")
   role                UserRole       @default(USER)
   userStatus          UserStatus     @default(ACTIVE)
@@ -37,34 +37,40 @@ model User {
   @@map("users")
 }
 
-model Plan {
-  id        String           @id @default(auto()) @map("_id") @db.ObjectId
-  amount    Float
-  type      PlanType         @default(BASIC)
-  time      SubscriptionType @default(MONTHLY)
-  feature   String[]
-  isDeleted Boolean          @default(false)
-  createAt  DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-
-  subscription Subscription[]
-
-  @@map("planes")
+model SubscriptionPlan {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  type        PlanType      @default(BASIC)
+  description String[]
+  price       Float
+  trialDays   Int           @default(7)
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  subscriptions Subscription[]
 }
 
 model Subscription {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String    @db.ObjectId
-  planId    String    @db.ObjectId
-  plan      Plan      @relation(fields: [planId], references: [id])
-  startDate DateTime  @default(now())
-  endDate   DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  user      User      @relation(fields: [userId], references: [id])
-
-  @@map("subscriptions")
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String      @db.ObjectId
+  user           User        @relation(fields: [userId], references: [id])
+  planId         String      @db.ObjectId
+  plan           SubscriptionPlan @relation(fields: [planId], references: [id])
+  startDate      DateTime
+  endDate        DateTime
+  isTrial        Boolean     @default(true)
+  isRenewed      Boolean     @default(false)
+  agreedToTerms  Boolean     @default(false)
+  paymentInfo    String?     // store tokenized reference or masked info
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
+
+enum PlanType {
+  BASIC
+  MONTHLY
+  YEARLY
+}
+
 
 model Review {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -78,6 +84,19 @@ model Review {
   // agent Agent @relation("AgentReviews", fields: [agentId], references: [id])
 
   @@map("reviews")
+}
+
+model Course {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  description String
+  price     Float
+  duration  Int
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
 }
 
 model PrivacyPolicy {
@@ -110,11 +129,6 @@ enum SubscriptionType {
   YEARLY
 }
 
-enum PlanType {
-  BASIC
-  PRO
-  PREMIUM
-}
 
 enum UserRole {
   ADMIN
