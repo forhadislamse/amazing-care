@@ -7,6 +7,8 @@ import { NotificationRoutes } from "../modules/Notification/Notification.routes"
 import { ReviewRoutes } from "../modules/Review/Review.routes";
 import { SubscriptionRoutes } from "../modules/Subscription/Subscription.routes";
 import { PlanRoutes } from "../modules/Plan/Plan.routes";
+import { CoursesRoutes } from "../modules/Courses/Courses.routes";
+import { VideosRoutes } from "../modules/Videos/Videos.routes";
 
 const router = express.Router();
 
@@ -18,6 +20,14 @@ const moduleRoutes = [
   {
     path: "/auth",
     route: AuthRoutes,
+  },
+  {
+    path: "/courses",
+    route: CoursesRoutes,
+  },
+  {
+    path: "/videos",
+    route: VideosRoutes,
   },
   {
     path: "/subscription",

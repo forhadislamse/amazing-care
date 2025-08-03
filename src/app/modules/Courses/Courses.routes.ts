@@ -16,7 +16,7 @@ router.post(
   CoursesController.createCourses // 🔒 only teachers can create courses
 );
 
-router.get("/inActive", auth(), CoursesController.getCoursesInActiveList);
+// router.get("/inActive", auth(), CoursesController.getCoursesInActiveList);
 
 router.get("/", auth(), CoursesController.getCoursesList);
 
@@ -26,7 +26,7 @@ router.get(
   CoursesController.getAllDashboardCount
 );
 
-router.get("/topCourses", auth(), CoursesController.getTopCourses);
+// router.get("/topCourses", auth(), CoursesController.getTopCourses);
 
 router.get("/studentProgress", auth(), CoursesController.getStudentProgress);
 

@@ -27,10 +27,9 @@ const createVideos = catchAsync(async (req: Request, res: Response) => {
   videosData.courseId = courseId;
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const thumbnailFile = files?.file?.[0];
   const videoFile = files?.video?.[0];
 
-  if (!thumbnailFile)
+  if (!videoFile)
     throw new ApiError(httpStatus.BAD_REQUEST, "No video thumbnail uploaded.");
 
   let videoUrl: string | undefined;
@@ -43,16 +42,11 @@ const createVideos = catchAsync(async (req: Request, res: Response) => {
     ? await getVideoDurationFromBufferAlt(videoFile.buffer)
     : "";
 
-  const uploadThumbnailResult = await fileUploader.uploadToCloudinary(
-    thumbnailFile
-  );
-  const thumbnailUrl = uploadThumbnailResult?.Location;
 
   const result = await VideosService.createIntoDb(
     videosData,
     teacherId,
     courseId,
-    thumbnailUrl,
     videoUrl,
     videoDuration
   );
@@ -97,21 +91,18 @@ const updateVideos = catchAsync(async (req: Request, res: Response) => {
   const videosData: updateIVideos = JSON.parse(req.body.text || "{}");
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const file = files?.file?.[0];
+  const videoFile = files?.video?.[0];
 
-  let thumbnailUrl: string | undefined;
+  if (videoFile) {
+    const uploadResult = await fileUploader.uploadToCloudinary(videoFile);
+    const videoUrl = uploadResult?.Location;
 
-  if (file) {
-    const uploadResult = await fileUploader.uploadToCloudinary(file);
-    thumbnailUrl = uploadResult?.Location;
+    if (videoUrl) {
+      videosData.videoUrl = videoUrl;
+    }
   }
 
-  const video = await VideosService.updateIntoDb(
-    id,
-    videosData,
-    teacherId,
-    thumbnailUrl
-  );
+  const video = await VideosService.updateIntoDb(id, videosData, teacherId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -120,6 +111,7 @@ const updateVideos = catchAsync(async (req: Request, res: Response) => {
     data: video,
   });
 });
+
 
 const deleteVideos = catchAsync(async (req: Request, res: Response) => {
   const result = await VideosService.deleteItemFromDb(req.params.id);

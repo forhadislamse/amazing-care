@@ -16,7 +16,6 @@ const createIntoDb = async (
   data: IVideos,
   teacherId: string,
   courseId: string,
-  thumbnailUrl: string,
   videoUrl?: string,
   videoDuration?: string
 ) => {
@@ -30,12 +29,8 @@ const createIntoDb = async (
   // Create video entry
   const video = await prisma.videos.create({
     data: {
-      name: data.name,
       title: data.title,
-      subTitle: data.subTitle,
-      description: data.description,
       videoUrl: videoUrl ?? "",
-      thumbnailUrl,
       teacherId,
       courseId,
       videoDuration: videoDuration ?? "",
@@ -43,12 +38,8 @@ const createIntoDb = async (
     },
     select: {
       id: true,
-      name: true,
       title: true,
-      subTitle: true,
-      description: true,
       courseId: true,
-      thumbnailUrl: true,
       teacherId: true,
       videoUrl: true,
       videoDuration: true,
@@ -124,7 +115,7 @@ const getListFromDb = async (
       user: {
         select: {
           id: true,
-          username: true,
+          firstName: true,
         },
       },
     },
@@ -166,7 +157,6 @@ const updateIntoDb = async (
   id: string,
   data: updateIVideos,
   teacherId: string,
-  thumbnailUrl?: string
 ) => {
   console.log('Checking video with:', { id, teacherId });
 
@@ -185,7 +175,6 @@ const updateIntoDb = async (
     where: { id },
     data: {
       ...data,
-      thumbnailUrl,
     },
   });
 

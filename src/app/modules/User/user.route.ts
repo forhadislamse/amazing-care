@@ -26,7 +26,7 @@ router.put(
   "/profile",
   // validateRequest(UserValidation.userUpdateSchema),
 
-  fileUploader.uploadImages,
+  fileUploader.uploadCourses,
   auth(),
   userController.updateProfile
 );

@@ -43,7 +43,7 @@ const createIntoDb = async (
       thumbnailUrl: true,
       price: true,
       description: true,
-      user: { select: { id: true, username: true } },
+      user: { select: { id: true, firstName: true } },
       level: true
     },
   });
@@ -115,10 +115,10 @@ const getListFromDb = async (
       user: {
         select: {
           id: true,
-          username: true,
+          firstName: true,
         },
       },
-      Enrollment: {
+      enrollment: {
         where: {
           studentId: userId,
         },
@@ -138,7 +138,7 @@ const getListFromDb = async (
   // Add `isBuy` to each course object
   const coursesWithBuyStatus = result.map((course) => ({
     ...course,
-    isBuy: course.Enrollment.length > 0,
+    isBuy: course.enrollment.length > 0,
   }));
 
   const total = await prisma.courses.count({
@@ -157,215 +157,118 @@ const getListFromDb = async (
   };
 };
 
-const getInActiveListFromDb = async (
-  options: IPaginationOptions,
-  params: ICourseFilterRequest & { minPrice?: number; maxPrice?: number },
-  teacherId?: string
-) => {
-  const { limit, page, skip } = paginationHelper.calculatePagination(options);
-  const { searchTerm, minPrice, maxPrice, ...filterData } = params;
 
-  const andConditions: Prisma.CoursesWhereInput[] = [];
+// const getTopReviewedCourses = async (limit: number = 5, userId: string) => {
+//   // Step 1: Group reviews to calculate average rating and count per course
+//   const topCourseRatings = await prisma.review.groupBy({
+//     by: ["courseId"],
+//     _avg: {
+//       rating: true,
+//     },
+//     _count: {
+//       rating: true,
+//     },
+//     orderBy: {
+//       _avg: {
+//         rating: "desc",
+//       },
+//     },
+//     take: limit,
+//   });
 
-  // 🔍 Search by course name and category name
-  if (searchTerm) {
-    andConditions.push({
-      OR: [
-        {
-          name: {
-            contains: searchTerm,
-            mode: "insensitive",
-          },
-        }
-      ],
-    });
-  }
+//   // Step 2: Extract top course IDs
+//   const courseIds = topCourseRatings.map((item) => item.courseId);
 
-  // 💵 Filter by min and max price
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    andConditions.push({
-      price: {
-        ...(minPrice !== undefined && { gte: minPrice }),
-        ...(maxPrice !== undefined && { lte: maxPrice }),
-      },
-    });
-  }
+//   if (courseIds.length === 0) return [];
 
-  // 🧩 Additional filters
-  if (Object.keys(filterData).length > 0) {
-    andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    });
-  }
+//   // Step 3: Fetch active courses with those IDs and include teacher info and reviews
+//   const courses = await prisma.courses.findMany({
+//     where: {
+//       id: {
+//         in: courseIds,
+//       },
+//       activeStatus: "ACTIVE",
+//     },
 
-  // ✅ Always filter only ACTIVE courses
-  andConditions.push({
-    activeStatus: "INACTIVE",
-  });
+//     include: {
+//       Enrollment: {
+//         where: {
+//           studentId: userId,
+//         },
+//         select: {
+//           id: true, // just to check presence
+//         },
+//       },
+//       review: true,
+//       user: {
+//         select: {
+//           id: true,
+//           username: true,
+//         },
+//       },
+//       videos: {
+//         select: {
+//           id: true,
+//           videoUrl: true,
+//           videoDuration: true,
+//           title: true,
+//           subTitle: true,
+//           description: true,
+//           serialNo: true,
+//           user: {
+//             select: {
+//               id: true,
+//               username: true,
+//             },
+//           },
+//         },
+//       },
+//     },
+//   });
 
-  // 🧑‍🏫 Filter by teacherId
-  if (teacherId) {
-    andConditions.push({
-      teacherId,
-    });
-  }
+//   // Step 4: Map courseId to avg rating for quick lookup
+//   const ratingMap = new Map(
+//     topCourseRatings.map((item) => [item.courseId, item._avg.rating])
+//   );
 
-  // Final WHERE
-  const whereConditions: Prisma.CoursesWhereInput = {
-    AND: andConditions,
-  };
+//   // Step 5: Add avgRating to each course and sort
+//   const sortedCourses = courses
+//     .map((course) => ({
+//       ...course,
+//       isBuy: course.Enrollment.length > 0,
+//       avgRating: ratingMap.get(course.id) ?? 0,
+//     }))
+//     .sort((a, b) => b.avgRating - a.avgRating); // Maintain correct order
 
-  const result = await prisma.courses.findMany({
-    where: whereConditions,
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-        },
-      }
-    },
-    skip,
-    take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? { [options.sortBy]: options.sortOrder }
-        : { createdAt: "desc" },
-  });
-
-  const total = await prisma.courses.count({
-    where: whereConditions,
-  });
-
-  return {
-    meta: {
-      page,
-      limit,
-      total,
-    },
-    data: result,
-  };
-};
-
-const getTopReviewedCourses = async (limit: number = 5, userId: string) => {
-  // Step 1: Group reviews to calculate average rating and count per course
-  const topCourseRatings = await prisma.review.groupBy({
-    by: ["courseId"],
-    _avg: {
-      rating: true,
-    },
-    _count: {
-      rating: true,
-    },
-    orderBy: {
-      _avg: {
-        rating: "desc",
-      },
-    },
-    take: limit,
-  });
-
-  // Step 2: Extract top course IDs
-  const courseIds = topCourseRatings.map((item) => item.courseId);
-
-  if (courseIds.length === 0) return [];
-
-  // Step 3: Fetch active courses with those IDs and include teacher info and reviews
-  const courses = await prisma.courses.findMany({
-    where: {
-      id: {
-        in: courseIds,
-      },
-      activeStatus: "ACTIVE",
-    },
-
-    include: {
-      Enrollment: {
-        where: {
-          studentId: userId,
-        },
-        select: {
-          id: true, // just to check presence
-        },
-      },
-      review: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-        },
-      },
-      videos: {
-        select: {
-          id: true,
-          videoUrl: true,
-          videoDuration: true,
-          title: true,
-          subTitle: true,
-          description: true,
-          serialNo: true,
-          user: {
-            select: {
-              id: true,
-              username: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // Step 4: Map courseId to avg rating for quick lookup
-  const ratingMap = new Map(
-    topCourseRatings.map((item) => [item.courseId, item._avg.rating])
-  );
-
-  // Step 5: Add avgRating to each course and sort
-  const sortedCourses = courses
-    .map((course) => ({
-      ...course,
-      isBuy: course.Enrollment.length > 0,
-      avgRating: ratingMap.get(course.id) ?? 0,
-    }))
-    .sort((a, b) => b.avgRating - a.avgRating); // Maintain correct order
-
-  return sortedCourses;
-};
+//   return sortedCourses;
+// };
 
 const getByIdFromDb = async (id: string, userId: string) => {
   const result = await prisma.courses.findFirst({
     where: {
-      id,
-      activeStatus: "ACTIVE",
+      id
     },
     include: {
       user: {
         select: {
           id: true,
-          username: true,
+          firstName: true,
         },
       },
-      Enrollment: {
+      enrollment: {
         where: { studentId: userId },
       },
       videos: {
         select: {
           id: true,
-          thumbnailUrl: true,
           videoUrl: true,
           videoDuration: true,
           title: true,
-          subTitle: true,
-          description: true,
           serialNo: true,
           user: {
             select: {
               id: true,
-              username: true,
+              firstName: true,
             },
           },
         },
@@ -392,7 +295,7 @@ const getByIdFromDb = async (id: string, userId: string) => {
 
   return {
     ...result,
-    isBuy: result.Enrollment.length > 0,
+    isBuy: result.enrollment.length > 0,
     reviewCount,
     averageRating,
   };
@@ -400,7 +303,7 @@ const getByIdFromDb = async (id: string, userId: string) => {
 
 const getByInActiveIdFromDb = async (id: string) => {
   const result = await prisma.courses.findUnique({
-    where: { id, activeStatus: "INACTIVE" },
+    where: { id },
     include: {
       user: {
         select: {
@@ -411,12 +314,9 @@ const getByInActiveIdFromDb = async (id: string) => {
       videos: {
         select: {
           id: true,
-          thumbnailUrl: true,
           videoUrl: true,
           videoDuration: true,
           title: true,
-          subTitle: true,
-          description: true,
           serialNo: true,
           user: {
             select: {
@@ -557,7 +457,6 @@ const getTotalCoursesCount = async (teacherId: string) => {
       price: true,
       thumbnailUrl: true,
       description: true,
-      categoryId: true,
       videoCount: true,
       reviewCount: true,
       teacherId: true,
@@ -781,7 +680,7 @@ const getMyPurchasedCourses = async (user: JwtPayload) => {
           user: {
             select: {
               id: true,
-              username: true,
+              firstName: true,
               role: true,
               email: true,
             },
@@ -802,7 +701,7 @@ const getMyPurchasedCourses = async (user: JwtPayload) => {
     updatedAt: enroll.updatedAt,
     teacher: {
       id: enroll.course.user.id,
-      username: enroll.course.user.username,
+      firstName: enroll.course.user.firstName,
       role: enroll.course.user.role,
       email: enroll.course.user.email,
     },
@@ -831,7 +730,7 @@ const getTotalSellCount = async (teacherId: string) => {
       student: {
         select: {
           id: true,
-          username: true,
+          firstName: true,
           email: true,
         },
       },
@@ -897,7 +796,7 @@ const recommendCourses = async (courseId: string) => {
 
 const getRecommendedCourses = async () => {
   const courses = await prisma.courses.findMany({
-    where: { recommended: true, activeStatus: "ACTIVE" },
+    where: { recommended: true },
     include: {
       user: {
         select: {
@@ -913,9 +812,7 @@ const getRecommendedCourses = async () => {
 
 export const CoursesService = {
   createIntoDb,
-  getInActiveListFromDb,
   getListFromDb,
-  getTopReviewedCourses,
   getByIdFromDb,
   getByInActiveIdFromDb,
   updateIntoDb,

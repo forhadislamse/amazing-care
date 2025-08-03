@@ -33,26 +33,26 @@ const createCourses = catchAsync(async (req: Request, res: Response) => {
   const courseData: Courses = JSON.parse(req.body.text || "{}");
 
   // ✅ Validate level (either "1"-"5" or text labels)
-  const allowedLevels = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "Beginner",
-    "Intermediate",
-    "Pro",
-  ];
+  // const allowedLevels = [
+  //   "1",
+  //   "2",
+  //   "3",
+  //   "4",
+  //   "5",
+  //   "Beginner",
+  //   "Intermediate",
+  //   "Pro",
+  // ];
 
-  if (
-    typeof courseData.level !== "string" ||
-    !allowedLevels.includes(courseData.level)
-  ) {
-    throw new ApiError(
-      400,
-      "Level must be one of: 1-5, Beginner, Intermediate, Advanced, Expert."
-    );
-  }
+  // if (
+  //   typeof courseData.level !== "string" ||
+  //   !allowedLevels.includes(courseData.level)
+  // ) {
+  //   throw new ApiError(
+  //     400,
+  //     "Level must be one of: 1-5, Beginner, Intermediate, Advanced, Expert."
+  //   );
+  // }
 
   // ✅ Check uploaded file
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -61,7 +61,7 @@ const createCourses = catchAsync(async (req: Request, res: Response) => {
   if (!file) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      "No course thumbnail image uploaded."
+      "No Course thumbnail image uploaded."
     );
   }
 
@@ -93,30 +93,30 @@ const createCourses = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getCoursesInActiveList = catchAsync(
-  async (req: Request, res: Response) => {
-    const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
-    const filters = pick(req.query, courseFilterableFields);
-    const user = req.user;
+// const getCoursesInActiveList = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+//     const filters = pick(req.query, courseFilterableFields);
+//     const user = req.user;
 
-    // Only teachers see their own courses; others see all
-    const teacherId = user?.role === "TEACHER" ? user.id : undefined;
+//     // Only teachers see their own courses; others see all
+//     const teacherId = user?.role === "TEACHER" ? user.id : undefined;
 
-    const course = await CoursesService.getInActiveListFromDb(
-      options,
-      filters,
-      teacherId
-    );
+//     const course = await CoursesService.getInActiveListFromDb(
+//       options,
+//       filters,
+//       teacherId
+//     );
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Courses list retrieved successfully",
-      meta: course.meta,
-      data: course.data,
-    });
-  }
-);
+//     sendResponse(res, {
+//       statusCode: httpStatus.OK,
+//       success: true,
+//       message: "Courses list retrieved successfully",
+//       meta: course.meta,
+//       data: course.data,
+//     });
+//   }
+// );
 
 const getCoursesList = catchAsync(async (req: Request, res: Response) => {
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
@@ -124,13 +124,13 @@ const getCoursesList = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
 
   // Only teachers see their own courses; others see all
-  const teacherId = user?.role === "TEACHER" ? user.id : undefined;
+  // const teacherId = user?.role === "TEACHER" ? user.id : undefined;
 
   const course = await CoursesService.getListFromDb(
     user.id,
     options,
     filters,
-    teacherId
+    // teacherId
   );
 
   sendResponse(res, {
@@ -142,19 +142,19 @@ const getCoursesList = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getTopCourses = catchAsync(async (req: Request, res: Response) => {
-  const limit = parseInt(req.query.limit as string) || 5;
-  const userId = req.user.id;
+// const getTopCourses = catchAsync(async (req: Request, res: Response) => {
+//   const limit = parseInt(req.query.limit as string) || 5;
+//   const userId = req.user.id;
 
-  const courses = await CoursesService.getTopReviewedCourses(limit, userId);
+//   const courses = await CoursesService.getTopReviewedCourses(limit, userId);
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Top reviewed courses retrieved successfully",
-    data: courses,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Top reviewed courses retrieved successfully",
+//     data: courses,
+//   });
+// });
 
 const recommendCourse = async (req: Request, res: Response) => {
   const courseId = req.params.id;
@@ -319,9 +319,9 @@ const getTotalSellCount = catchAsync(async (req: Request, res: Response) => {
 
 export const CoursesController = {
   createCourses,
-  getCoursesInActiveList,
+  // getCoursesInActiveList,
   getCoursesList,
-  getTopCourses,
+  // getTopCourses,
   recommendCourse,
   getRecommendedCourses,
   getCoursesById,
