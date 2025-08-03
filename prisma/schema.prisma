@@ -31,72 +31,173 @@ model User {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   notifications       Notification[] @relation("UserRelation")
-  Review              Review[]
-  Subscription        Subscription[]
+  review              Review[]
+  subscription        Subscription[]
+
+  courses      Courses[]
+  videos       Videos[]
+  watchHistory WatchHistory[]
+  enrollment   Enrollment[]
+  notes        Notes[]
+  quizzes      Quizzes[]
+  assignments  Assignments[]
 
   @@map("users")
 }
 
-model SubscriptionPlan {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  type        PlanType      @default(BASIC)
-  description String[]
-  price       Float
-  trialDays   Int           @default(7)
-  isActive    Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  subscriptions Subscription[]
+model Courses {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String        @default("")
+  description   String        @default("")
+  thumbnailUrl  String        @default("")
+  price         Float         @default(0)
+  teacherId     String        @db.ObjectId
+  user          User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  level         String        @default("")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  videos        Videos[]
+  notes         Notes[]
+  quizzes       Quizzes[]
+  assignments   Assignments[]
+  review        Review[]
+  videoCount    Int           @default(0)
+  videoDuration String        @default("")
+  reviewCount   Int           @default(0)
+  enrollment    Enrollment[]
+  recommended   Boolean       @default(false)
+
+  @@map("courses")
 }
 
-model Subscription {
-  id             String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String      @db.ObjectId
-  user           User        @relation(fields: [userId], references: [id])
-  planId         String      @db.ObjectId
-  plan           SubscriptionPlan @relation(fields: [planId], references: [id])
-  startDate      DateTime
-  endDate        DateTime
-  isTrial        Boolean     @default(true)
-  isRenewed      Boolean     @default(false)
-  agreedToTerms  Boolean     @default(false)
-  paymentInfo    String?     // store tokenized reference or masked info
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+model Videos {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String         @default("")
+  title         String         @default("")
+  subTitle      String         @default("")
+  description   String         @default("")
+  teacherId     String         @db.ObjectId
+  user          User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  courseId      String         @db.ObjectId
+  course        Courses        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  videoDuration String         @default("")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  serialNo      Int            @default(0)
+  watchHistory  WatchHistory[]
+
+  @@map("videos")
 }
 
-enum PlanType {
-  BASIC
-  MONTHLY
-  YEARLY
+model Notes {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @default("")
+  documentUrl String   @default("")
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courseId    String   @db.ObjectId
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
 }
 
+model Quizzes {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @default("")
+  documentUrl String   @default("")
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String   @db.ObjectId
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("quizzes")
+}
+
+model Assignments {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String   @default("")
+  documentUrl  String   @default("")
+  userId       String   @db.ObjectId
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String   @db.ObjectId
+  course       Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("assignments")
+}
+
+model WatchHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  videoId   String   @db.ObjectId
+  watchedAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Videos @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+}
+
+model Enrollment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId     String   @db.ObjectId
+  courseId      String   @db.ObjectId
+  paymentId     String   @default("")
+  paymentStatus Boolean  @default(true)
+  student       User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course        Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([studentId, courseId]) // Prevent duplicate enrollments
+  @@map("enrollments")
+}
 
 model Review {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  rating    Int      @default(0)
-  agentId   String   @db.ObjectId
-  userId    String   @db.ObjectId
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  rating   Int     @default(0)
+  courseId String  @db.ObjectId
+  userId   String  @db.ObjectId
+  course   Courses @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-  // agent Agent @relation("AgentReviews", fields: [agentId], references: [id])
 
   @@map("reviews")
 }
 
-model Course {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  description String
-  price     Float
-  duration  Int
-  image     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model SubscriptionPlan {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  type          PlanType       @default(BASIC)
+  description   String[]
+  price         Float
+  trialDays     Int            @default(7)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}
 
-  @@map("courses")
+model Subscription {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String           @db.ObjectId
+  user          User             @relation(fields: [userId], references: [id])
+  planId        String           @db.ObjectId
+  plan          SubscriptionPlan @relation(fields: [planId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  isTrial       Boolean          @default(true)
+  isRenewed     Boolean          @default(false)
+  agreedToTerms Boolean          @default(false)
+  paymentInfo   String? // store tokenized reference or masked info
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model PrivacyPolicy {
@@ -129,10 +230,16 @@ enum SubscriptionType {
   YEARLY
 }
 
+enum PlanType {
+  BASIC
+  MONTHLY
+  YEARLY
+}
 
 enum UserRole {
   ADMIN
-  MENTOR
+  TEACHER
+  STUDENT
   SUPER_ADMIN
   USER
 }
