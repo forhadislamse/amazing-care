@@ -1,3 +1,3 @@
-export const videosFilterableFields = ["title"];
+export const notesFilterableFields = ["title"];
 
 export const videosSearchAbleFields = ["title"];

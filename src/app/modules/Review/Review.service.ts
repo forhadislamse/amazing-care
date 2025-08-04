@@ -3,38 +3,46 @@ import ApiError from "../../../errors/ApiErrors";
 import prisma from "../../../shared/prisma";
 
 const createIntoDb = async (
+  courseId: string,
   userId: string,
-  agentId: string,
   rating: number
 ) => {
-  
-  const agent = await prisma.user.findUnique({
-    where: { id: agentId },
-  });
+  // Validate course
+  const course = await prisma.courses.findUnique({ where: { id: courseId } });
+  if (!course) throw new ApiError(httpStatus.NOT_FOUND, "Course not found");
 
-
+  // Check if user already reviewed
   const existingReview = await prisma.review.findFirst({
-    where: { agentId, userId },
+    where: { courseId, userId },
   });
 
   if (existingReview) {
     throw new ApiError(
       httpStatus.CONFLICT,
-      "You have already reviewed this agent."
+      "You have already reviewed this course."
     );
   }
 
+  // Create review
   const review = await prisma.review.create({
     data: {
-      agentId,
-      userId,
       rating,
+      courseId,
+      userId,
+    },
+  });
+
+  await prisma.courses.update({
+    where: { id: courseId },
+    data: {
+      reviewCount: {
+        increment: 1,
+      },
     },
   });
 
   return review;
 };
-
 
 const getListFromDb = async () => {
   const result = await prisma.review.findMany();
@@ -58,13 +66,12 @@ const updateIntoDb = async (id: string, data: any) => {
 };
 
 const deleteItemFromDb = async (id: string) => {
-    const deletedItem = await prisma.review.delete({
-      where: { id },
-    });
+  const deletedItem = await prisma.review.delete({
+    where: { id },
+  });
 
-    // Add any additional logic if necessary, e.g., cascading deletes
-    return deletedItem;
-  
+  // Add any additional logic if necessary, e.g., cascading deletes
+  return deletedItem;
 };
 export const ReviewService = {
   createIntoDb,

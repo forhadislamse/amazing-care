@@ -6,9 +6,9 @@ import httpStatus from "http-status";
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const { agentId, rating } = req.body;
-
-  const review = await ReviewService.createIntoDb(agentId, userId, rating);
+  const { courseId, rating } = req.body;
+  
+  const review = await ReviewService.createIntoDb(courseId, userId, rating);
 
   sendResponse(res, {
     success: true,

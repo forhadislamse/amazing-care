@@ -4,7 +4,6 @@ export interface IVideos {
   teacherId?: string;
   title: string;
   videoUrl: string;
-  description: string;
 }
 
 export interface updateIVideos {

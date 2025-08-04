@@ -34,13 +34,14 @@ model User {
   review              Review[]
   subscription        Subscription[]
 
-  courses      Courses[]
-  videos       Videos[]
+  courses     Courses[]
+  videos      Videos[]
+  notes       Notes[]
+  quizzes     Quizzes[]
+  assignments Assignments[]
+
   watchHistory WatchHistory[]
   enrollment   Enrollment[]
-  notes        Notes[]
-  quizzes      Quizzes[]
-  assignments  Assignments[]
 
   @@map("users")
 }
@@ -91,8 +92,8 @@ model Notes {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String   @default("")
   documentUrl String   @default("")
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacherId   String   @db.ObjectId
+  user        User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   courseId    String   @db.ObjectId
@@ -105,8 +106,8 @@ model Quizzes {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String   @default("")
   documentUrl String   @default("")
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacherId   String   @db.ObjectId
+  user        User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   courseId    String   @db.ObjectId
   course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -116,15 +117,15 @@ model Quizzes {
 }
 
 model Assignments {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  title        String   @default("")
-  documentUrl  String   @default("")
-  userId       String   @db.ObjectId
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId     String   @db.ObjectId
-  course       Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @default("")
+  documentUrl String   @default("")
+  teacherId   String   @db.ObjectId
+  user        User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  courseId    String   @db.ObjectId
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("assignments")
 }

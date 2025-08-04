@@ -273,6 +273,20 @@ const getByIdFromDb = async (id: string, userId: string) => {
           },
         },
       },
+      notes: {
+        select: {
+          id: true,
+          documentUrl: true,
+          title: true,
+        },
+      },
+      quizzes: {
+        select: {
+          id: true,
+          documentUrl: true,
+          title: true,
+        },
+      },
       review: {
         select: {
           id: true,
