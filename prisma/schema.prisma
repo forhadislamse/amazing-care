@@ -43,6 +43,11 @@ model User {
   watchHistory WatchHistory[]
   enrollment   Enrollment[]
 
+  sentChats     Chat[]        @relation("ChatsSent")
+  receivedChats Chat[]        @relation("ChatsReceived")
+  sentRooms     Room[]        @relation("RoomsSent")
+  receivedRooms Room[]        @relation("RoomsReceived")
+
   @@map("users")
 }
 
@@ -169,6 +174,39 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@map("reviews")
+}
+
+model Chat {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String   @db.ObjectId
+  receiverId String   @db.ObjectId
+  message    String?
+  roomId     String   @db.ObjectId
+  timerId    String?   @db.ObjectId
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("ChatsSent", fields: [senderId], references: [id])
+  receiver User @relation("ChatsReceived", fields: [receiverId], references: [id])
+
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@map("chats")
+}
+
+model Room {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String   @db.ObjectId
+  receiverId String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sender     User     @relation("RoomsSent", fields: [senderId], references: [id])
+  receiver   User     @relation("RoomsReceived", fields: [receiverId], references: [id])
+
+  chat Chat[]
+
+  @@map("rooms")
 }
 
 model SubscriptionPlan {
