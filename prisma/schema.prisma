@@ -34,44 +34,48 @@ model User {
   review              Review[]
   subscription        Subscription[]
 
-  courses     Courses[]
-  videos      Videos[]
-  notes       Notes[]
-  quizzes     Quizzes[]
-  assignments Assignments[]
+  courses             Courses[]
+  videos              Videos[]
+  notes               Notes[]
+  quizzes             Quizzes[]
+  QuizzesFeedback     QuizzesFeedback[]
+  assignments         Assignments[]
+  AssignmentsFeedback AssignmentsFeedback[]
 
   watchHistory WatchHistory[]
   enrollment   Enrollment[]
 
-  sentChats     Chat[]        @relation("ChatsSent")
-  receivedChats Chat[]        @relation("ChatsReceived")
-  sentRooms     Room[]        @relation("RoomsSent")
-  receivedRooms Room[]        @relation("RoomsReceived")
+  sentChats     Chat[] @relation("ChatsSent")
+  receivedChats Chat[] @relation("ChatsReceived")
+  sentRooms     Room[] @relation("RoomsSent")
+  receivedRooms Room[] @relation("RoomsReceived")
 
   @@map("users")
 }
 
 model Courses {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  name          String        @default("")
-  description   String        @default("")
-  thumbnailUrl  String        @default("")
-  price         Float         @default(0)
-  teacherId     String        @db.ObjectId
-  user          User          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  level         String        @default("")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  videos        Videos[]
-  notes         Notes[]
-  quizzes       Quizzes[]
-  assignments   Assignments[]
-  review        Review[]
-  videoCount    Int           @default(0)
-  videoDuration String        @default("")
-  reviewCount   Int           @default(0)
-  enrollment    Enrollment[]
-  recommended   Boolean       @default(false)
+  id                  String                @id @default(auto()) @map("_id") @db.ObjectId
+  name                String                @default("")
+  description         String                @default("")
+  thumbnailUrl        String                @default("")
+  price               Float                 @default(0)
+  teacherId           String                @db.ObjectId
+  user                User                  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  level               String                @default("")
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  videos              Videos[]
+  notes               Notes[]
+  quizzes             Quizzes[]
+  quizzesFeedback     QuizzesFeedback[]
+  assignments         Assignments[]
+  assignmentsFeedback AssignmentsFeedback[]
+  review              Review[]
+  videoCount          Int                   @default(0)
+  videoDuration       String                @default("")
+  reviewCount         Int                   @default(0)
+  enrollment          Enrollment[]
+  recommended         Boolean               @default(false)
 
   @@map("courses")
 }
@@ -121,6 +125,20 @@ model Quizzes {
   @@map("quizzes")
 }
 
+model QuizzesFeedback {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @default("")
+  documentUrl String   @default("")
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String   @db.ObjectId
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("quizzesFeedback")
+}
+
 model Assignments {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String   @default("")
@@ -133,6 +151,20 @@ model Assignments {
   updatedAt   DateTime @updatedAt
 
   @@map("assignments")
+}
+
+model AssignmentsFeedback {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @default("")
+  documentUrl String   @default("")
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String   @db.ObjectId
+  course      Courses  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("assignmentsFeedback")
 }
 
 model WatchHistory {
@@ -182,7 +214,7 @@ model Chat {
   receiverId String   @db.ObjectId
   message    String?
   roomId     String   @db.ObjectId
-  timerId    String?   @db.ObjectId
+  timerId    String?  @db.ObjectId
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

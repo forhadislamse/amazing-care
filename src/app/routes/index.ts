@@ -13,6 +13,8 @@ import { NotesRoutes } from "../modules/Notes/Notes.routes";
 import { QuizzesRoutes } from "../modules/Quizzes/Quizzes.routes";
 import { AssignmentsRoutes } from "../modules/Assignments/Assignments.routes";
 import { WatchHistoryRoutes } from "../modules/WatchHistory/WatchHistory.routes";
+import { QuizzesFeedbackRoutes } from "../modules/QuizzesFeedback/QuizzesFeedback.routes";
+import { AssignmentsFeedbackRoutes } from "../modules/AssignmentsFeedback/AssignmentsFeedback.routes";
 
 const router = express.Router();
 
@@ -42,8 +44,16 @@ const moduleRoutes = [
     route: QuizzesRoutes,
   },
   {
+    path: "/quizzes-feedback",
+    route: QuizzesFeedbackRoutes,
+  },
+  {
     path: "/assignments",
     route: AssignmentsRoutes,
+  },
+  {
+    path: "/assignments-feedback",
+    route: AssignmentsFeedbackRoutes,
   },
   {
     path: "/watch",
@@ -73,7 +83,6 @@ const moduleRoutes = [
     path: "/privacy",
     route: PrivacyPolicyRoutes,
   },
-
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
