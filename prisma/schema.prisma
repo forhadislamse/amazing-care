@@ -53,6 +53,45 @@ model User {
   @@map("users")
 }
 
+// Add to your existing enums
+enum DonationFrequency {
+  ONE_TIME
+  MONTHLY
+  YEARLY
+}
+
+// Add Donation model
+model Donation {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  currency    String           @default("USD")
+  frequency   DonationFrequency @default(ONE_TIME)
+  status      PaymentStatus    @default(PENDING) // Reuse your existing PaymentStatus enum
+  isAnonymous Boolean          @default(false)
+  nomineeName String?
+  message     String?
+  
+  // Relationships
+  userId      String           @db.ObjectId
+  paymentId   String           @db.ObjectId
+  
+  user        User             @relation(fields: [userId], references: [id])
+  payment     Payment          @relation(fields: [paymentId], references: [id])
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([paymentId])
+  @@map("donations")
+}
+
+// Add to your User model
+model User {
+  // ... existing fields ...
+  donations Donation[]
+}
+
 model Courses {
   id                  String                @id @default(auto()) @map("_id") @db.ObjectId
   name                String                @default("")
