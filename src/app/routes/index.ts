@@ -15,6 +15,7 @@ import { AssignmentsRoutes } from "../modules/Assignments/Assignments.routes";
 import { WatchHistoryRoutes } from "../modules/WatchHistory/WatchHistory.routes";
 import { QuizzesFeedbackRoutes } from "../modules/QuizzesFeedback/QuizzesFeedback.routes";
 import { AssignmentsFeedbackRoutes } from "../modules/AssignmentsFeedback/AssignmentsFeedback.routes";
+import { DonationRoutes } from "../modules/Donation/donation.route";
 
 const router = express.Router();
 
@@ -82,6 +83,10 @@ const moduleRoutes = [
   {
     path: "/privacy",
     route: PrivacyPolicyRoutes,
+  },
+  {
+    path: "/donations",
+    route: DonationRoutes,
   },
 ];
 

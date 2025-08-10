@@ -50,47 +50,54 @@ model User {
   sentRooms     Room[] @relation("RoomsSent")
   receivedRooms Room[] @relation("RoomsReceived")
 
+  donations     Donation[] @relation("UserDonations")
+  // payments      Payment[] @relation("UserPayments")
+
   @@map("users")
 }
 
-// Add to your existing enums
-enum DonationFrequency {
-  ONE_TIME
-  MONTHLY
-  YEARLY
-}
-
-// Add Donation model
+// Donation Model
 model Donation {
-  id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  amount      Float
-  currency    String           @default("USD")
-  frequency   DonationFrequency @default(ONE_TIME)
-  status      PaymentStatus    @default(PENDING) // Reuse your existing PaymentStatus enum
-  isAnonymous Boolean          @default(false)
-  nomineeName String?
-  message     String?
-  
-  // Relationships
-  userId      String           @db.ObjectId
-  paymentId   String           @db.ObjectId
-  
-  user        User             @relation(fields: [userId], references: [id])
-  payment     Payment          @relation(fields: [paymentId], references: [id])
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String             @db.ObjectId
+  amount           Float
+  currency         String             @default("USD")
+  type             DonationType
+  recurringInterval RecurringInterval?
+  paymentId        String?            @db.ObjectId
+  status           PaymentStatus      @default(PENDING)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  @@index([userId])
-  @@index([paymentId])
+  user    User     @relation("UserDonations", fields: [userId], references: [id], onDelete: Cascade)
+  // payment Payment? @relation(fields: [paymentId], references: [id])
+  @@unique([userId])
   @@map("donations")
+  
 }
 
-// Add to your User model
-model User {
-  // ... existing fields ...
-  donations Donation[]
-}
+
+// model Payment {
+//   id                    String        @id @default(auto()) @map("_id") @db.ObjectId
+//   paymentId             String        // Stripe Payment Intent ID or custom ID
+//   amount                Float
+//   paymentMethod         PaymentMethod
+//   paymentStatus         PaymentStatus @default(PENDING)
+//   stripePaymentIntentId String?
+//   refundId              String?
+//   metadata              Json?
+//   paymentDate           DateTime?     @default(now())
+//   createdAt             DateTime      @default(now())
+//   updatedAt             DateTime      @updatedAt
+
+//   userId      String?    @db.ObjectId
+//   donationId  String?    @db.ObjectId
+
+//   user        User?      @relation("UserPayments", fields: [userId], references: [id])
+//   donation    Donation?  @relation("DonationPayments", fields: [donationId], references: [id])
+
+//   @@map("payments")
+// }
 
 model Courses {
   id                  String                @id @default(auto()) @map("_id") @db.ObjectId
@@ -362,4 +369,31 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+}
+
+// enums
+enum DonationType {
+  ONE_TIME
+  RECURRING
+}
+
+enum RecurringInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  FAILED
+  INCOMPLETE
+  COMPLETED
+  REFUNDED
+  REQUIRES_CAPTURE
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  WALLET
+  STRIPE
 }
