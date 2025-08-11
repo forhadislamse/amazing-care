@@ -17,15 +17,15 @@ export interface IUpdateDonation {
   currency?: string;
   type?: DonationType;
   recurringInterval?: RecurringInterval | null;
-  status?: PaymentStatus;
-  paymentId?: string | null;
+//   status?: PaymentStatus;
+//   paymentId?: string | null;
 }
 
 export type IDonationFilterRequest = {
   userId?: string;
   type?: DonationType;
   recurringInterval?: RecurringInterval;
-  status?: PaymentStatus;
+//   status?: PaymentStatus;
   startDate?: string;
   endDate?: string;
   page?: number;

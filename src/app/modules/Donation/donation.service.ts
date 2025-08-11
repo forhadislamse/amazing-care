@@ -79,5 +79,6 @@ export const DonationService = {
   getAllDonations,
   getSingleDonation,
   updateDonation,
-  deleteDonation
+  deleteDonation,
+  getUserDonations
 };
