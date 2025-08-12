@@ -71,7 +71,7 @@ model Donation {
 
   user    User     @relation("UserDonations", fields: [userId], references: [id], onDelete: Cascade)
   // payment Payment? @relation(fields: [paymentId], references: [id])
-  @@unique([userId])
+  
   @@map("donations")
   
 }

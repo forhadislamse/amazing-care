@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post(
   "/create-course",
-  auth(),
+  auth(UserRole.TEACHER),
   // validateRequest(CoursesValidation.createCourseSchema),
   fileUploader.uploadCourses,
   CoursesController.createCourses // 🔒 only teachers can create courses

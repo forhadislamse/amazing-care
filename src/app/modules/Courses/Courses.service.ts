@@ -13,6 +13,8 @@ import { JwtPayload } from "jsonwebtoken";
 import { notificationService } from "../Notification/Notification.service";
 import { create } from "domain";
 import prisma from "../../../shared/prisma";
+import { ObjectId } from "mongodb";
+
 
 const createIntoDb = async (
   data: ICourse,
@@ -374,7 +376,10 @@ const updateIntoDb = async (
   thumbnailUrl?: string
 ) => {
   const isExitsCourse = await prisma.courses.findFirst({
-    where: { id, teacherId },
+    where: {
+      id,
+      teacherId
+    },
   });
   if (!isExitsCourse) {
     throw new ApiError(404, "Course not found");
@@ -406,6 +411,9 @@ const updateIntoDb = async (
 
   return updatedCourse;
 };
+
+
+
 
 const deleteItemFromDb = async (id: string) => {
     const course = await prisma.courses.findUnique({

@@ -13,6 +13,7 @@ import { get } from "http";
 import { JwtPayload } from "jsonwebtoken";
 
 const createCourses = catchAsync(async (req: Request, res: Response) => {
+  // console.log(req.files);
   const teacherId = req.user?.id;
   const userRole = req.user?.role;
 
@@ -30,7 +31,15 @@ const createCourses = catchAsync(async (req: Request, res: Response) => {
   }
 
   // ✅ Parse body
-  const courseData: Courses = JSON.parse(req.body.text || "{}");
+  // const courseData: Courses = JSON.parse(req.body.text || "{}");
+  let courseData: Courses = {} as Courses;
+if (req.body?.text) {
+  try {
+    courseData = JSON.parse(req.body.text);
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Invalid JSON in text field.");
+  }
+}
 
   // ✅ Validate level (either "1"-"5" or text labels)
   // const allowedLevels = [
@@ -56,7 +65,11 @@ const createCourses = catchAsync(async (req: Request, res: Response) => {
 
   // ✅ Check uploaded file
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  const file = files?.file?.[0];
+  // const file = files?.file?.[0];
+  const file =
+  files?.file?.[0] ||
+  files?.thumbnail?.[0] ||
+  files?.image?.[0];
 
   if (!file) {
     throw new ApiError(
@@ -204,6 +217,7 @@ const updateCourses = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const couserData: updateICourse = JSON.parse(req.body.text || "{}");
+  // console.log(couserData);
 
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
   const file = files?.file?.[0];

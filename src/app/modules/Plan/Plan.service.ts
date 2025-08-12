@@ -2,12 +2,8 @@ import httpStatus from "http-status";
 import prisma from "../../../shared/prisma";
 
 const createIntoDb = async (data: any) => {
-  const transaction = await prisma.$transaction(async (prisma) => {
-    const result = await prisma.plan.create({ data });
-    return result;
-  });
-
-  return transaction;
+  const result = await prisma.plan.create({ data });
+  return result;
 };
 
 const getListFromDb = async () => {

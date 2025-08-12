@@ -34,6 +34,7 @@ const createUserIntoDb = async (payload: User) => {
       );
     }
   }
+  // Hash the password before saving it to the database.
   const hashedPassword: string = await bcrypt.hash(
     payload.password,
     Number(config.bcrypt_salt_rounds)
@@ -164,11 +165,11 @@ const updateProfile = async (req: Request) => {
       id: existingUser.id,
     },
     data: {
-      username: parseData.username || existingUser.username,
-      dob: parseData.dob ? new Date(parseData.dob) : existingUser.dob,
-      email: parseData.email || existingUser.email,
+      username: parseData?.username || existingUser.username,
+      dob: parseData?.dob ? new Date(parseData.dob) : existingUser.dob,
+      email: parseData?.email || existingUser.email,
       profileImage: image || existingUser.profileImage,
-      role: parseData.role || existingUser.role,
+      role: parseData?.role || existingUser.role,
       updatedAt: new Date(),
     },
     select: {
