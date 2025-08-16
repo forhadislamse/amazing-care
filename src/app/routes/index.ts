@@ -77,7 +77,7 @@ const moduleRoutes = [
     route: NotificationRoutes,
   },
   {
-    path: "/trams",
+    path: "/terms",
     route: TermsAndConditionsRoutes,
   },
   {

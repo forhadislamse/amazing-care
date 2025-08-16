@@ -26,7 +26,7 @@ router.get(
   CoursesController.getAllDashboardCount
 );
 
-// router.get("/topCourses", auth(), CoursesController.getTopCourses);
+router.get("/topCourses", auth(), CoursesController.getTopCourses);
 
 router.get("/studentProgress", auth(), CoursesController.getStudentProgress);
 

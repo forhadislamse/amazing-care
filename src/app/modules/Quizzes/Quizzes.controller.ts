@@ -13,7 +13,7 @@ const createQuizzes = catchAsync(async (req: Request, res: Response) => {
 
   if (!teacherId) throw new Error("Unauthorized access.");
   if (userRole !== "TEACHER")
-    throw new Error("Only teachers can create notes.");
+    throw new Error("Only teachers can create quizzes.");
 
   const quizzesData: IQuizzes = {
     title,

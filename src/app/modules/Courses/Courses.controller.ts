@@ -169,6 +169,24 @@ const getCoursesList = catchAsync(async (req: Request, res: Response) => {
 //   });
 // });
 
+const getTopCourses = catchAsync(async (req: Request, res: Response) => {
+  const limitParam = parseInt(req.query.limit as string);
+  const limit = Number.isNaN(limitParam) ? 5 : limitParam;
+
+  if (!req.user?.id) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, "User not authenticated");
+  }
+
+  const courses = await CoursesService.getTopReviewedCourses(limit, req.user.id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Top reviewed courses retrieved successfully",
+    data: courses,
+  });
+});
+
 const recommendCourse = async (req: Request, res: Response) => {
   const courseId = req.params.id;
   const courses = await CoursesService.recommendCourses(courseId);
@@ -335,7 +353,7 @@ export const CoursesController = {
   createCourses,
   // getCoursesInActiveList,
   getCoursesList,
-  // getTopCourses,
+  getTopCourses,
   recommendCourse,
   getRecommendedCourses,
   getCoursesById,

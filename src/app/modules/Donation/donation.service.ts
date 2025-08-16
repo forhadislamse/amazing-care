@@ -1,3 +1,6 @@
+import { Prisma } from "@prisma/client";
+import { paginationHelper } from "../../../helpars/paginationHelper";
+import { IPaginationOptions } from "../../../interfaces/paginations";
 import prisma from "../../../shared/prisma";
 import { IDonation, IDonationFilterRequest } from "./donation.interface";
 
@@ -10,42 +13,138 @@ const createDonation = async (donationData: IDonation, userId: string) => {
   });
   return newDonation;
 };
-const getAllDonations = async (filter: IDonationFilterRequest) => {
-    const{
-        userId,
-        type,
-        recurringInterval,
-        // status,
-        startDate,
-        endDate,
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        sortOrder = "desc",
-    } = filter;
 
-    const whereClause: any = {};
-    if (userId) whereClause.userId = userId;
-    if (type) whereClause.type = type;
-    if (recurringInterval) whereClause.recurringInterval = recurringInterval;
-    if (status) whereClause.status = status;
-    if (startDate || endDate) {
-        whereClause.createdAt = {};
-        if (startDate) whereClause.createdAt.gte = new Date(startDate);
-        if (endDate) whereClause.createdAt.lte = new Date(endDate);
+// const getAllDonations = async (
+//   options: IPaginationOptions,
+//   params: IDonationFilterRequest,
+//   role: string
+// ) => {
+//   const { limit, page, skip, sortBy, sortOrder } = paginationHelper.calculatePagination(options);
+
+//   let whereConditions: Prisma.DonationWhereInput | undefined;
+
+//   if (role === 'admin') {
+//     // admin হলে ফিল্টার একদম লাগবে না, সব ডোনেশন আসবে
+//     whereConditions = undefined;
+//   } else {
+//     // normal user হলে ফিল্টার লাগবে, userId দিয়ে ফিল্টার করবো
+//     const andConditions: Prisma.DonationWhereInput[] = [];
+
+//     if (params.userId && params.userId.trim() !== '') {
+//       andConditions.push({ userId: params.userId });
+//     }
+
+//     if (params.amount !== undefined) {
+//       andConditions.push({ amount: params.amount });
+//     }
+
+//     if (params.currency) {
+//       andConditions.push({ currency: params.currency });
+//     }
+
+//     if (params.type) {
+//       andConditions.push({ type: params.type });
+//     }
+
+//     if (params.recurringInterval !== undefined) {
+//       andConditions.push({ recurringInterval: params.recurringInterval });
+//     }
+
+//     whereConditions = andConditions.length > 0 ? { AND: andConditions } : undefined;
+//   }
+
+//   const donations = await prisma.donation.findMany({
+//     ...(whereConditions && { where: whereConditions }),
+//     skip,
+//     take: limit,
+//     orderBy: {
+//       [sortBy]: sortOrder,
+//     },
+//   });
+
+//   const total = await prisma.donation.count({
+//     ...(whereConditions && { where: whereConditions }),
+//   });
+
+//   return {
+//     success: true,
+//     message: 'Donations list retrieved successfully',
+//     meta: {
+//       page,
+//       limit,
+//       total,
+//     },
+//     data: donations,
+//   };
+// };
+
+const getAllDonations = async (
+  options: IPaginationOptions,
+  params: IDonationFilterRequest,
+  role: string
+) => {
+  const { limit, page, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
+
+  let whereConditions: Prisma.DonationWhereInput | undefined = undefined;
+
+  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
+    // শুধু ইউজারের ক্ষেত্রে ফিল্টার বানাবো
+    const andConditions: Prisma.DonationWhereInput[] = [];
+
+    // শুধু নিজের ডোনেশন ফিল্টার
+    if (params.userId && params.userId.trim() !== '') {
+      andConditions.push({ userId: params.userId });
     }
 
-    const donations = await prisma.donation.findMany({
-        where: whereClause,
-        orderBy: {
-            [sortBy]: sortOrder,
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-    });
+    if (params.amount !== undefined) {
+      andConditions.push({ amount: params.amount });
+    }
 
-    return donations;
+    if (params.currency) {
+      andConditions.push({ currency: params.currency });
+    }
+
+    if (params.type) {
+      andConditions.push({ type: params.type });
+    }
+
+    if (params.recurringInterval !== undefined) {
+      andConditions.push({ recurringInterval: params.recurringInterval });
+    }
+
+    if (andConditions.length > 0) {
+      whereConditions = { AND: andConditions };
+    }
+  }
+
+  // ডাটাবেজ কুয়েরি
+  const donations = await prisma.donation.findMany({
+    ...(whereConditions && { where: whereConditions }),
+    skip,
+    take: limit,
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+  });
+
+  const total = await prisma.donation.count({
+    ...(whereConditions && { where: whereConditions }),
+  });
+
+  return {
+    success: true,
+    message: 'Donations list retrieved successfully',
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: donations,
+  };
 };
+
+
 
 const getSingleDonation = async (id: string) => {
     const donation = await prisma.donation.findUnique({
@@ -67,12 +166,7 @@ const deleteDonation = async (id: string) => {
     });
 };
 
-const getUserDonations = async (userId: string) => {
-    const donations = await prisma.donation.findMany({
-        where: { userId },
-    });
-    return donations;
-};
+
 
 export const DonationService = {
   createDonation,
@@ -80,5 +174,5 @@ export const DonationService = {
   getSingleDonation,
   updateDonation,
   deleteDonation,
-  getUserDonations
+  
 };

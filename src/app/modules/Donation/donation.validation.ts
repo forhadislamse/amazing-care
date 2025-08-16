@@ -14,7 +14,9 @@ export const createDonationSchema = z.object({
 const updateDonationSchema = z.object({
   amount: z.number().positive().optional(),
   currency: z.string().optional(),
-  paymentId: z.string().nullable().optional(),
+  type: z.enum(["ONE_TIME", "RECURRING"]).optional(),
+  recurringInterval: z.enum([ "MONTHLY", "YEARLY"]).nullable().optional(),
+  
 });
 
 export const DonationValidation = {

@@ -159,6 +159,45 @@ const getListFromDb = async (
   };
 };
 
+const getTopReviewedCourses = async (limit: number, userId: string) => {
+  const courses = await prisma.courses.findMany({
+    take: limit,
+    orderBy: {
+      reviewCount: "desc", // বেশি রিভিউ থাকা কোর্স আগে আসবে
+    },
+    include: {
+      review: {
+        select: {
+          rating: true,
+        },
+      },
+      enrollment: {
+        where: {
+          studentId: userId,
+        },
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  // extra fields: averageRating, isEnrolled
+  return courses.map(course => {
+    const ratings = course.review.map(r => r.rating);
+    const avgRating = ratings.length
+      ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+      : 0;
+
+    return {
+      ...course,
+      averageRating: Number(avgRating.toFixed(2)),
+      isEnrolled: course.enrollment.length > 0,
+    };
+  });
+};
+
+
 
 // const getTopReviewedCourses = async (limit: number = 5, userId: string) => {
 //   // Step 1: Group reviews to calculate average rating and count per course
@@ -845,6 +884,7 @@ export const CoursesService = {
   buyCourse,
   getMyPurchasedCourses,
   getTotalSellCount,
+  getTopReviewedCourses,
   recommendCourses,
   getRecommendedCourses,
 };

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { DonationService } from "./donation.service";
+import { IDonationFilterRequest } from "./donation.interface";
 
 const createDonation = catchAsync(async (req: Request, res: Response) => {
   const donationData = req.body;
@@ -15,16 +16,40 @@ const createDonation = catchAsync(async (req: Request, res: Response) => {
     data: donation,
   });
 });
+
+
+
 const getAllDonations = catchAsync(async (req: Request, res: Response) => {
-    const filter=req.query;
-    const donations = await DonationService.getAllDonations(filter);
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'Donations retrieved successfully',
-        data: donations,
-    });
+  const options = {
+    page: Number(req.body.page) || 1,
+    limit: Number(req.body.limit) || 10,
+    sortBy: req.body.sortBy || 'createdAt',
+    sortOrder: req.body.sortOrder || 'desc',
+  };
+
+  const role = req.user.role;
+  
+  const params: IDonationFilterRequest = {
+    // শুধু ইউজার হলে userId দিব
+    userId: role !== 'ADMIN' && role !== 'SUPER_ADMIN' ? req.user.id : '',
+    amount: req.body.amount,
+    currency: req.body.currency,
+    type: req.body.type,
+    recurringInterval: req.body.recurringInterval,
+  };
+
+  const result = await DonationService.getAllDonations(options, params, role);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Donations retrieved successfully',
+    data: result.data,
+    meta: result.meta,
+  });
 });
+
+
 
 const getSingleDonation = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -60,16 +85,7 @@ const deleteDonation = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getUserDonations = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.user.id;
-    const donations = await DonationService.getAllDonations({ userId });
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'User donations retrieved successfully',
-        data: donations,
-    });
-});
+
 
 export const DonationController = {
   createDonation,
@@ -77,5 +93,5 @@ export const DonationController = {
   getSingleDonation,
   updateDonation,
   deleteDonation,
-  getUserDonations
+  
 };

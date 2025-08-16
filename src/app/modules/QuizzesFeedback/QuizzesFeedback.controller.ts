@@ -15,7 +15,7 @@ const createQuizzesFeedback = catchAsync(
 
     if (!userId) throw new Error("Unauthorized access.");
     if (userRole !== "STUDENT")
-      throw new Error("Only students can create notes.");
+      throw new Error("Only students can give quiz feedback.");
 
     const quizzesFeedbackData: IQuizzesFeedback = {
       title,

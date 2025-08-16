@@ -4,6 +4,7 @@ import validateRequest from '../../middlewares/validateRequest';
 import { SubscriptionController } from './Subscription.controller';
 import { SubscriptionValidation } from './Subscription.validation';
 
+
 const router = express.Router();
 
 router.post(
@@ -11,6 +12,15 @@ router.post(
 auth(),
 // validateRequest(SubscriptionValidation.createSchema),
 SubscriptionController.createSubscription,
+);
+
+router.post("/confirm-stripe", auth(), SubscriptionController.confirmSubscriptionWithStripe);
+router.get('/payment-success', SubscriptionController.handlePaymentSuccess);
+
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  SubscriptionController.stripeWebhook
 );
 
 router.get('/', auth(), SubscriptionController.getSubscriptionList);

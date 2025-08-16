@@ -51,7 +51,7 @@ model User {
   receivedRooms Room[] @relation("RoomsReceived")
 
   donations     Donation[] @relation("UserDonations")
-  // payments      Payment[] @relation("UserPayments")
+  payments      Payment[]  @relation("UserPayments")
 
   @@map("users")
 }
@@ -71,33 +71,35 @@ model Donation {
 
   user    User     @relation("UserDonations", fields: [userId], references: [id], onDelete: Cascade)
   // payment Payment? @relation(fields: [paymentId], references: [id])
-  
+  payments          Payment[]
   @@map("donations")
   
 }
 
 
-// model Payment {
-//   id                    String        @id @default(auto()) @map("_id") @db.ObjectId
-//   paymentId             String        // Stripe Payment Intent ID or custom ID
-//   amount                Float
-//   paymentMethod         PaymentMethod
-//   paymentStatus         PaymentStatus @default(PENDING)
-//   stripePaymentIntentId String?
-//   refundId              String?
-//   metadata              Json?
-//   paymentDate           DateTime?     @default(now())
-//   createdAt             DateTime      @default(now())
-//   updatedAt             DateTime      @updatedAt
+model Payment {
+  id                    String        @id @default(auto()) @map("_id") @db.ObjectId
+  paymentId             String        // Stripe Payment Intent ID or custom ID
+  amount                Float
+  paymentMethod         PaymentMethod
+  paymentStatus         PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?
+  refundId              String?
+  metadata              Json?
+  paymentDate           DateTime?     @default(now())
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
-//   userId      String?    @db.ObjectId
-//   donationId  String?    @db.ObjectId
+  userId         String?       @db.ObjectId
+  subscriptionId String?       @db.ObjectId
+  donationId     String?       @db.ObjectId
 
-//   user        User?      @relation("UserPayments", fields: [userId], references: [id])
-//   donation    Donation?  @relation("DonationPayments", fields: [donationId], references: [id])
+  user           User?         @relation("UserPayments", fields: [userId], references: [id])
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  donation       Donation?     @relation(fields: [donationId], references: [id])
 
-//   @@map("payments")
-// }
+  @@map("payments")
+}
 
 model Courses {
   id                  String                @id @default(auto()) @map("_id") @db.ObjectId
@@ -242,7 +244,7 @@ model Enrollment {
 
 model Review {
   id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  rating   Int     @default(0)
+  rating   Float     @default(0)
   courseId String  @db.ObjectId
   userId   String  @db.ObjectId
   course   Courses @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -313,6 +315,8 @@ model Subscription {
   paymentInfo   String? // store tokenized reference or masked info
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
+   // Relation with Payment
+  payments      Payment[]
 }
 
 model PrivacyPolicy {
@@ -392,7 +396,7 @@ enum PaymentStatus {
 }
 
 enum PaymentMethod {
-  CASH
+  // CASH
   CARD
   WALLET
   STRIPE

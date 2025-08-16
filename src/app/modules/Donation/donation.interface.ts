@@ -25,6 +25,8 @@ export type IDonationFilterRequest = {
   userId?: string;
   type?: DonationType;
   recurringInterval?: RecurringInterval;
+  currency?: string;
+  amount?: number;
 //   status?: PaymentStatus;
   startDate?: string;
   endDate?: string;

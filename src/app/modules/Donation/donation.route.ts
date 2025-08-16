@@ -38,10 +38,6 @@ router.delete(
   DonationController.deleteDonation
 );
 
-router.get(
-  '/user/my-donations',
-  auth(),
-  DonationController.getUserDonations
-);
+
 
 export const DonationRoutes = router;
